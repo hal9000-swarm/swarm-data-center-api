@@ -3,7 +3,8 @@ info:
   title: Solution Data API
   description: >-
     Solutions Data API is the single entrypoint to access aggregated and
-    processed data from Swarm Perception Boxes®.
+    processed data from Swarm Perception Boxes®. <br/>
+    Data is currently available for 24 hours.
   version: 0.8.0
   license:
     name: Commercial License
