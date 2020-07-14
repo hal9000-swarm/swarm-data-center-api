@@ -37,10 +37,10 @@ paths:
                 properties:
                   node:
                     $ref: >-
-                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/swarm-event-schema.json?token=AOONTUZNITWEKTDHNKITMTS7C27OU#/definitions/node
+                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/swarm-event-schema.json#/definitions/node
                   event:
                     $ref: >-
-                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/swarm-event-schema.json?token=AOONTUZNITWEKTDHNKITMTS7C27OU#/definitions/regionOfInterestEvent
+                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/swarm-event-schema.json#/definitions/regionOfInterestEvent
         default:
           description: unexpected error
           content:
@@ -86,10 +86,10 @@ paths:
                 properties:
                   node:
                     $ref: >-
-                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/swarm-event-schema.json?token=AOONTUZNITWEKTDHNKITMTS7C27OU#/definitions/node
+                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/swarm-event-schema.json#/definitions/node
                   event:
                     $ref: >-
-                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/swarm-event-schema.json?token=AOONTUZNITWEKTDHNKITMTS7C27OU#/definitions/crossingLineEvent
+                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/swarm-event-schema.json#/definitions/crossingLineEvent
         default:
           description: unexpected error
           content:
@@ -140,10 +140,10 @@ paths:
                 properties:
                   node:
                     $ref: >-
-                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/trafficMonitoring/traffic-monitoring-event-schema.json?token=AOONTUY2Z4XEGY3T7O2LOQC7C25LM#/definitions/node
+                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/trafficMonitoring/traffic-monitoring-event-schema.json#/definitions/node
                   event:
                     $ref: >-
-                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/trafficMonitoring/traffic-monitoring-event-schema.json?token=AOONTUY2Z4XEGY3T7O2LOQC7C25LM#/definitions/trafficEvent
+                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/trafficMonitoring/traffic-monitoring-event-schema.json#/definitions/trafficEvent
         default:
           description: unexpected error
           content:
