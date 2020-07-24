@@ -74,7 +74,7 @@ paths:
             example: "2020-07-21T17:32:28Z"
         - name: to
           in: query
-          description: End date-time of the time-window. <br/> Defaults
+          description: End date-time of the time-window. <br/> Defaults to now if not specified.
           schema:
             type: string
             format: date-time
@@ -105,8 +105,8 @@ paths:
         - Traffic Monitoring
       summary: Returns an aggregated summary of counted detections within a time interval, and groups them by their classification.
       description: >-
-        Entry-zone and exit-zone UUID can be obtained from the Swarm Control
-        Center.  <br/> As default returns data for the last hour grouped in 5 minute intervals. This can be
+        Line UUID can be obtained from the Swarm Control
+        Center.  <br/> As default returns data for the last hour grouped in 5 minute intervals. <br/> This can be
         adjusted by setting query parameters.
       parameters:
         - name: lineUUID
@@ -133,7 +133,7 @@ paths:
           
         - name: interval
           in: query
-          description: "The interval in minutres for grouping of event counts. <br/>Minimum: 5 minutes"
+          description: "The interval in minutes for grouping of event counts. <br/> Minimum: 5 minutes"
           schema:
             type: integer
             minimum: 5
@@ -154,6 +154,39 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ClassificationCountSummary'
+              example:
+                node:
+                  id: "lineUUID"
+                  name: "lineName"
+                Summary: 
+                  - timestamp-interval-start: "2020-07-24T12:20:35.441Z"
+                    timestamp-interval-end: "2020-07-24T12:25:35.441Z"
+                    total: 23
+                    in: 10
+                    out: 13
+                    ClassificationCounts:
+                      - classfication: car
+                        total: 20
+                        in: 8
+                        out: 12
+                      - classfication: truck
+                        total: 3
+                        in: 2
+                        out: 1
+                  - timestamp-interval-start: "2020-07-24T12:25:35.441Z"
+                    timestamp-interval-end: "2020-07-24T12:30:35.441Z"
+                    total: 19
+                    in: 9
+                    out: 10
+                    ClassificationCounts:
+                      - classfication: car
+                        total: 11
+                        in: 6
+                        out: 5
+                      - classfication: truck
+                        total: 8
+                        in: 3
+                        out: 5
                     
         default:
           description: unexpected error
@@ -196,6 +229,7 @@ paths:
           schema:
             type: string
             format: date-time
+            
       responses:
         '200':
           description: successful operation
@@ -221,12 +255,21 @@ components:
     ClassificationCountSummary:
       type: object
       properties:
-        timestamp:
+        timestamp-interval-start:
+          type: string
+          format: date-time
+        timestamp-interval-end:
           type: string
           format: date-time
         total:
             type: integer
             minimum: 0
+        in: 
+          type: integer
+          minimum: 0
+        out:
+          type: integer
+          minimum: 0
         
         ClassificationCounts:
           type: array
@@ -236,14 +279,23 @@ components:
               classification:
                  $ref: >-
                       https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/trafficMonitoring/traffic-monitoring-event-schema.json#/definitions/trafficClassification
-              count:
+              total:
                 type: integer
                 minimum: 0
+              in::
+                type: integer
+                minimum: 0
+              out:
+                type: integer
+                minimum: 0
+              
+              
             required:
               - classification
-              - count
+              - total
       required:
-        - timestamp
+        - timestamp-interval-start
+        - timestamp-interval-end
         - total
         - classificationSummary
     
