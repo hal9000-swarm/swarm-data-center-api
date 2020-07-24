@@ -67,16 +67,18 @@ paths:
             format: uuid
         - name: from
           in: query
-          description: Start date-time of the time-window
+          description: Start date-time of the time-window. <br/> Defaults to current time - 1 hour if not specified. <br/> Maximum of current time - 24 hours is supported.
           schema:
             type: string
             format: date-time
+            example: "2020-07-21T17:32:28Z"
         - name: to
           in: query
-          description: End date-time of the time-window
+          description: End date-time of the time-window. <br/> Defaults
           schema:
             type: string
             format: date-time
+            example: "2020-07-21T17:50:28Z"
       responses:
         '200':
           description: successful operation
@@ -97,7 +99,70 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /trafficdata/flows:
+  '/trafficdata/crossinglines/{lineUUID}/aggregate/classifications':
+    get:
+      tags:
+        - Traffic Monitoring
+      summary: Returns an aggregated summary of counted detections within a time interval, and groups them by their classification.
+      description: >-
+        Entry-zone and exit-zone UUID can be obtained from the Swarm Control
+        Center.  <br/> As default returns data for the last hour grouped in 5 minute intervals. This can be
+        adjusted by setting query parameters.
+      parameters:
+        - name: lineUUID
+          in: path
+          description: UUID of the counting line
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          description: Start date-time of the time-window. <br/> Defaults to current time - 1 hour if not specified. <br/> Maximum of current time - 24 hours is supported.
+          schema:
+            type: string
+            format: date-time
+            example: "2020-07-21T17:32:28Z"
+        - name: to
+          in: query
+          description: End date-time of the time-window. <br/> Defaults to now if not specified.
+          schema:
+            type: string
+            format: date-time
+            example: "2020-07-21T17:50:28Z"
+          
+        - name: interval
+          in: query
+          description: "The interval in minutres for grouping of event counts. <br/>Minimum: 5 minutes"
+          schema:
+            type: integer
+            minimum: 5
+            default: 5
+  
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  node:
+                    $ref: >-
+                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/swarm-event-schema.json#/definitions/node
+                  Summary:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassificationCountSummary'
+                    
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  '/trafficdata/flows':
     get:
       tags:
         - Traffic Monitoring
@@ -153,6 +218,35 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
+    ClassificationCountSummary:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        total:
+            type: integer
+            minimum: 0
+        
+        ClassificationCounts:
+          type: array
+          items:
+            type: object
+            properties:
+              classification:
+                 $ref: >-
+                      https://raw.githubusercontent.com/hal9000-swarm/swarm-event-schema/master/trafficMonitoring/traffic-monitoring-event-schema.json#/definitions/trafficClassification
+              count:
+                type: integer
+                minimum: 0
+            required:
+              - classification
+              - count
+      required:
+        - timestamp
+        - total
+        - classificationSummary
+    
     Error:
       type: object
       required:
