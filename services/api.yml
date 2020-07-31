@@ -1,0 +1,462 @@
+openapi: 3.0.1
+info:
+  title: Solution Data API
+  description: >-
+    Solutions Data API is the single entrypoint to access aggregated and
+    processed data from Swarm Perception Boxes®. <br/> Data is currently
+    available for 24 hours.
+  version: 0.8.0
+  license:
+    name: Commercial License
+servers:
+  - url: 'https://swarm-data-center.azurewebsites.net/v1'
+    description: Sandbox Server (test data)
+paths:
+  '/parkingdata/spaces/{spaceUUID}':
+    get:
+      tags:
+        - Parking
+      summary: Get the last state of a given parking space UUID.
+      description: >-
+        Parking space UUID can be obtained from the Swarm Control Center or its
+        API
+      operationId: getParkingSpacesDataByUUID
+      parameters:
+        - name: spaceUUID
+          in: path
+          description: UUID of the parking space
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParkingSpaceResponse'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/trafficdata/crossinglines/{lineUUID}':
+    get:
+      tags:
+        - Traffic Monitoring
+      summary: Retrieves information about objects that crossed a counting line.
+      description: >-
+        Line UUID can be retrieved from the Swarm Control Center or its API.
+        <br/> As default returns data for the last hour. This can be adjusted by
+        setting query parameters.
+      operationId: getTrafficCrossingLineDataByUUID
+      parameters:
+        - name: lineUUID
+          in: path
+          description: UUID of the counting line
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          description: >-
+            Start date-time of the time-window. <br/> Defaults to current time -
+            1 hour if not specified. <br/> Maximum of current time - 24 hours is
+            supported.
+          schema:
+            type: string
+            format: date-time
+            example: '2020-07-21T17:32:28Z'
+        - name: to
+          in: query
+          description: >-
+            End date-time of the time-window. <br/> Defaults to now if not
+            specified.
+          schema:
+            type: string
+            format: date-time
+            example: '2020-07-21T17:50:28Z'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CrossingLineResponse'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/trafficdata/crossinglines/{lineUUID}/aggregate/classifications':
+    get:
+      tags:
+        - Traffic Monitoring
+      summary: >-
+        Returns an aggregated summary of counted detections within a time
+        interval, and groups them by their classification.
+      description: >-
+        Line UUID can be obtained from the Swarm Control Center.  <br/> As
+        default returns data for the last hour grouped in 5 minute intervals.
+        <br/> This can be adjusted by setting query parameters.
+      operationId: getTrafficCrossingLineAggregateClassificationDataByUUID
+      parameters:
+        - name: lineUUID
+          in: path
+          description: UUID of the counting line
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          description: >-
+            Start date-time of the time-window. <br/> Defaults to current time -
+            1 hour if not specified. <br/> Maximum of current time - 24 hours is
+            supported.
+          schema:
+            type: string
+            format: date-time
+            example: '2020-07-21T17:32:28Z'
+        - name: to
+          in: query
+          description: >-
+            End date-time of the time-window. <br/> Defaults to now if not
+            specified.
+          schema:
+            type: string
+            format: date-time
+            example: '2020-07-21T17:50:28Z'
+        - name: interval
+          in: query
+          description: >-
+            The interval in minutes for grouping of event counts. <br/> Minimum:
+            5 minutes
+          schema:
+            type: integer
+            minimum: 5
+            default: 5
+            example: '5'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/CrossingLineAggregateClassificationResponse
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /trafficdata/flows:
+    get:
+      tags:
+        - Traffic Monitoring
+      summary: Get traffic flows from Entry Zone to Exit Zone for a given time window
+      description: >-
+        Entry-zone and exit-zone UUID can be obtained from the Swarm Control
+        Center.  <br/> As default returns data for the last hour. This can be
+        adjusted by setting query parameters.
+      operationId: getTrafficFlowData
+      parameters:
+        - name: entryZone
+          in: query
+          description: UUID of the entry zone
+          schema:
+            type: string
+            format: uuid
+        - name: exitZone
+          in: query
+          description: UUID of the exit zone
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          description: Start date-time of the time-window
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          description: End date-time of the time-window
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OriginDestinationResponse'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    ClassificationCountSummary:
+      type: object
+      properties:
+        timestamp-interval-start:
+          type: string
+          format: date-time
+        timestamp-interval-end:
+          type: string
+          format: date-time
+        total:
+          type: integer
+          minimum: 0
+        in:
+          type: integer
+          minimum: 0
+        out:
+          type: integer
+          minimum: 0
+        ClassificationCounts:
+          type: array
+          items:
+            type: object
+            properties:
+              classification:
+                type: string
+                enum:
+                  - car
+                  - truck
+                  - person
+                  - bicycle
+                  - motorbike
+                  - bus
+              total:
+                type: integer
+                minimum: 0
+              in:
+                type: integer
+                minimum: 0
+              out:
+                type: integer
+                minimum: 0
+            required:
+              - classification
+              - total
+      required:
+        - timestamp-interval-start
+        - timestamp-interval-end
+        - total
+        - classificationSummary
+    id:
+      type: string
+      example: 56317209-9B83-43A6-A63E-58C9191A7869
+    node:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+      required:
+        - id
+        - name
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+    CrossingLineResponse:
+      type: object
+      required:
+        - node
+        - event
+      properties:
+        node:
+          $ref: '#/components/schemas/node'
+        event:
+          type: object
+          properties:
+            lineId:
+              $ref: '#/components/schemas/id'
+            lineName:
+              type: string
+            class:
+              type: string
+            direction:
+              type: string
+              enum:
+                - in
+                - out
+            timestamp:
+              type: string
+              format: date-time
+          required:
+            - class
+            - lineId
+            - lineName
+            - direction
+            - timestamp
+    CrossingLineAggregateClassificationResponse:
+      type: object
+      properties:
+        node:
+          $ref: '#/components/schemas/node'
+        Summary:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationCountSummary'
+      example:
+        node:
+          id: lineUUID
+          name: lineName
+        Summary:
+          - timestamp-interval-start: '2020-07-24T12:20:35.441Z'
+            timestamp-interval-end: '2020-07-24T12:25:35.441Z'
+            total: 23
+            in: 10
+            out: 13
+            ClassificationCounts:
+              - classfication: car
+                total: 20
+                in: 8
+                out: 12
+              - classfication: truck
+                total: 3
+                in: 2
+                out: 1
+          - timestamp-interval-start: '2020-07-24T12:25:35.441Z'
+            timestamp-interval-end: '2020-07-24T12:30:35.441Z'
+            total: 19
+            in: 9
+            out: 10
+            ClassificationCounts:
+              - classfication: car
+                total: 11
+                in: 6
+                out: 5
+              - classfication: truck
+                total: 8
+                in: 3
+                out: 5
+    ParkingSpaceResponse:
+      type: object
+      properties:
+        node:
+          $ref: '#/components/schemas/node'
+        event:
+          type: object
+          properties:
+            roiId:
+              $ref: '#/components/schemas/id'
+            roiName:
+              type: string
+            triggerType:
+              enum:
+                - time
+            timestamp:
+              type: string
+              format: date-time
+            state:
+              type: string
+              enum:
+                - occupied
+                - vacant
+            objects:
+              type: array
+              items:
+                type: object
+                properties:
+                  class:
+                    type: string
+                required:
+                  - class
+          required:
+            - roiId
+            - roiName
+            - triggerType
+            - timestamp
+            - state
+            - objects
+    ZoneTrigger:
+      type: object
+      properties:
+        zone:
+          type: object
+          properties:
+            zoneId:
+              $ref: '#/components/schemas/id'
+            name:
+              type: string
+          required:
+            - zoneId
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - zone
+        - timestamp
+
+    OriginDestinationResponse:
+      type: object
+      properties:
+        node:
+          $ref: '#/components/schemas/node'
+        event:
+          type: object
+          properties:
+            classification:
+              type: string
+              enum:
+                - car
+                - truck
+                - person
+                - bicycle
+                - motorbike
+                - bus
+            entry:
+              $ref: '#/components/schemas/ZoneTrigger'
+            exit:
+              $ref: '#/components/schemas/ZoneTrigger'
+            movementPath:
+              type: array
+              items:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                  x:
+                    type: number
+                  'y':
+                    type: number
+                  w:
+                    type: number
+                  h:
+                    type: number
+                required:
+                  - x
+                  - 'y'
+                  - w
+                  - h
+                  - timestamp
+          required:
+            - classification
+            - entry
+            - exit
+            - movementPath
