@@ -19,7 +19,7 @@ paths:
       summary: Get the last state of a given parking space UUID.
       description: >-
         Parking space UUID can be obtained from the Swarm Control Center or its
-        API
+        API. <br/> Returns the last known state of the parking space. The maximum time window considered is 1 hour.
       operationId: getParkingSpacesDataByUUID
       parameters:
         - name: spaceUUID
@@ -41,7 +41,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Problem'
   '/trafficdata/crossinglines/{lineUUID}':
     get:
       tags:
@@ -93,7 +93,64 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Problem'
+  '/trafficdata/crossinglines/aggregate/classifications':
+    get:
+      tags:
+        - Traffic Monitoring
+      summary: >-
+        Returns an aggregated summary of counted detections (for all known crossing lines) within a time
+        interval, and groups them by their classification.
+      description: >-
+        As default returns data for the last hour grouped in 5 minute intervals.
+        <br/> This can be adjusted by setting query parameters.
+      operationId: getTrafficCrossingLineAggregateClassificationData
+      parameters:
+        - name: from
+          in: query
+          description: >-
+            Start date-time of the time-window. <br/> Defaults to current time -
+            1 hour if not specified. <br/> Maximum of current time - 24 hours is
+            supported.
+          schema:
+            type: string
+            format: date-time
+            example: '2020-07-21T17:32:28Z'
+        - name: to
+          in: query
+          description: >-
+            End date-time of the time-window. <br/> Defaults to now if not
+            specified.
+          schema:
+            type: string
+            format: date-time
+            example: '2020-07-21T17:50:28Z'
+        - name: interval
+          in: query
+          description: >-
+            The interval in minutes for grouping of event counts. <br/> Minimum:
+            5 minutes
+          schema:
+            type: integer
+            minimum: 5
+            default: 5
+            example: '5'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: >-
+                    #/components/schemas/CrossingLineAggregateClassificationResponse
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   '/trafficdata/crossinglines/{lineUUID}/aggregate/classifications':
     get:
       tags:
@@ -156,7 +213,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Problem'
   /trafficdata/flows:
     get:
       tags:
@@ -186,12 +243,14 @@ paths:
           schema:
             type: string
             format: date-time
+            example: '2020-07-21T17:50:28Z'
         - name: to
           in: query
           description: End date-time of the time-window
           schema:
             type: string
             format: date-time
+            example: '2020-07-21T17:50:28Z'
       responses:
         '200':
           description: successful operation
@@ -206,7 +265,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Problem'
 components:
   schemas:
     ClassificationCountSummary:
@@ -215,9 +274,11 @@ components:
         timestamp-interval-start:
           type: string
           format: date-time
+          example: '2020-07-21T17:50:28Z'
         timestamp-interval-end:
           type: string
           format: date-time
+          example: '2020-07-21T17:50:28Z'
         total:
           type: integer
           minimum: 0
@@ -271,16 +332,46 @@ components:
       required:
         - id
         - name
-    Error:
+    Problem:
       type: object
-      required:
-        - code
-        - message
       properties:
-        code:
-          type: integer
-        message:
+        type:
           type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type.  When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type
+            (e.g., using HTML).
+          default: 'about:blank'
+          example: 'https://swarm-analytics.com/problem/constraint-violation'
+        title:
+          type: string
+          description: |
+            A short, summary of the problem type. Written in english and readable
+            for engineers (usually not suited for non technical stakeholders and
+            not localized); example: Service Unavailable
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence
+            of the problem.
+          minimum: 100
+          maximum: 600
+          exclusiveMaximum: true
+          example: 503
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the
+            problem.
+          example: Connection to database timed out
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
     CrossingLineResponse:
       type: object
       required:
@@ -306,6 +397,7 @@ components:
             timestamp:
               type: string
               format: date-time
+              example: '2020-07-21T17:50:28Z'
           required:
             - class
             - lineId
@@ -317,14 +409,20 @@ components:
       properties:
         node:
           $ref: '#/components/schemas/node'
+        lineId:
+          $ref: '#/components/schemas/id'
+        lineName:
+          type: string
         Summary:
           type: array
           items:
             $ref: '#/components/schemas/ClassificationCountSummary'
       example:
         node:
-          id: lineUUID
-          name: lineName
+          id: '24a212da-a054-4885-a2cb-bdff43cb6eba'
+          name: 'Box 1'
+        lineId: '56317209-9B83-43A6-A63E-58C9191A7869'
+        lineName: 'Countingline 1'
         Summary:
           - timestamp-interval-start: '2020-07-24T12:20:35.441Z'
             timestamp-interval-end: '2020-07-24T12:25:35.441Z'
@@ -372,6 +470,7 @@ components:
             timestamp:
               type: string
               format: date-time
+              example: '2020-07-21T17:50:28Z'
             state:
               type: string
               enum:
@@ -408,6 +507,7 @@ components:
         timestamp:
           type: string
           format: date-time
+          example: '2020-07-21T17:50:28Z'
       required:
         - zone
         - timestamp
@@ -441,6 +541,7 @@ components:
                   timestamp:
                     type: string
                     format: date-time
+                    example: '2020-07-21T17:50:28Z'
                   x:
                     type: number
                   'y':
