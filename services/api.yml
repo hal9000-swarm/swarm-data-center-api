@@ -46,7 +46,7 @@ paths:
     get:
       tags:
         - Traffic Monitoring
-      summary: Retrieves information about objects that crossed a counting line.
+      summary: Retrieves information about objects that crossed a specific counting line.
       description: >-
         Line UUID can be retrieved from the Swarm Control Center or its API.
         <br/> As default returns data for the last hour. This can be adjusted by
@@ -60,6 +60,51 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: from
+          in: query
+          description: >-
+            Start date-time of the time-window. <br/> Defaults to current time -
+            1 hour if not specified. <br/> Maximum of current time - 24 hours is
+            supported.
+          schema:
+            type: string
+            format: date-time
+            example: '2020-07-21T17:32:28Z'
+        - name: to
+          in: query
+          description: >-
+            End date-time of the time-window. <br/> Defaults to now if not
+            specified.
+          schema:
+            type: string
+            format: date-time
+            example: '2020-07-21T17:50:28Z'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CrossingLineResponse'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  '/trafficdata/crossinglines':
+    get:
+      tags:
+        - Traffic Monitoring
+      summary: Retrieves information about objects that crossed any known counting line.
+      description: >-
+        Line UUID can be retrieved from the Swarm Control Center or its API.
+        <br/> As default returns data for the last hour. This can be adjusted by
+        setting query parameters.
+      operationId: getTrafficCrossingLineData
+      parameters:
         - name: from
           in: query
           description: >-
