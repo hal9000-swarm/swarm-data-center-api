@@ -342,7 +342,9 @@ components:
                 type: string
                 enum:
                   - car
-                  - truck
+                  - van
+                  - articulated-truck
+                  - single-unit-truck
                   - person
                   - bicycle
                   - motorbike
@@ -569,7 +571,9 @@ components:
               type: string
               enum:
                 - car
-                - truck
+                - van
+                - articulated-truck
+                - single-unit-truck
                 - person
                 - bicycle
                 - motorbike
